@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Encoding" addBOMForNewFiles="with BOM under Windows, with no BOM otherwise" />
+  <component name="Encoding" addBOMForNewFiles="with BOM under Windows, with no BOM otherwise">
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/ProjectBase/Event/EventCenter.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/ProjectBase/Mono/MonoMgr.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/ProjectBase/Pool/PoolMgr.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/ProjectBase/Pool/PoolObj.cs" charset="GBK" />
+  </component>
 </project>

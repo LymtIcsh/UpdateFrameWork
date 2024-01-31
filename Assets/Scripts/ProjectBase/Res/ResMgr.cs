@@ -1,8 +1,10 @@
+using System;
 using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// 资源加载模块
@@ -11,7 +13,7 @@ using UnityEngine.Events;
 /// 3.协程
 /// 4.泛型
 /// </summary>
-public class ResMgr : BaseManager<ResMgr>
+public class ResMgr : BaseManager<ResMgr>, IProgress<float>
 {
     //同步加载资源
     public T Load<T>(string name) where T : Object
@@ -20,7 +22,7 @@ public class ResMgr : BaseManager<ResMgr>
         //如果对象是一个GameObject类型的 我把他实例化后 再返回出去 外部 直接使用即可
         if (res is GameObject)
             return GameObject.Instantiate(res);
-        else//TextAsset AudioClip
+        else //TextAsset AudioClip
             return res;
     }
 
@@ -50,28 +52,24 @@ public class ResMgr : BaseManager<ResMgr>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public async UniTask<Object> UniTaskResLoadAsync<T>(string name) where T: Object
+    public async UniTask<Object> UniTaskResLoadAsync<T>(string name) where T : Object
     {
-        var Res = await Resources.LoadAsync<T>(name).ToUniTask(Progress.Create<float>
-           (
-          x => EventCenter.GetInstance().EventTrigger("资源进度条加载", x)
-           ));
+        var Res = await Resources.LoadAsync<T>(name).ToUniTask(progress: this
+            /*Progress.Create<float>
+        (
+            x => EventCenter.GetInstance().EventTrigger(MyResEnum.Progress, x)
+        )*/
+        );
 
+       
         return Res;
-        
     }
-
-    ///// <summary>
-    ///// UniTask 加载路径下所有资源
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    ///// <param name="path"></param>
-    ///// <param name="callback"></param>
-    ///// <returns></returns>
-    //public async UniTaskVoid UniTaskResLoadAll<T>(string path, UnityAction<T[]> callback) where T : Object
-    //{
-    //    await UniTask.Yield();
-    //    T[] Res = Resources.LoadAll<T>(path);
-    //    callback(Res);
-    //}
+    
+    
+    /// <summary>
+    /// 为调用者实现 IProgress 接口，因为这样可以没有 lambda 分配。
+    /// </summary>
+    /// <param name="value"></param>
+    public void Report(float value)
+        => EventCenter.GetInstance().EventTrigger(MySceneEnum.Progress, value);
 }

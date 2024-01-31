@@ -1,54 +1,83 @@
-ï»¿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// 1.å¯ä»¥æä¾›ç»™å¤–éƒ¨æ·»åŠ å¸§æ›´æ–°äº‹ä»¶çš„æ–¹æ³•
-/// 2.å¯ä»¥æä¾›ç»™å¤–éƒ¨æ·»åŠ  åç¨‹çš„æ–¹æ³•
+/// ¹«¹²MonoÄ£¿é¹ÜÀíÆ÷
 /// </summary>
-public class MonoMgr : BaseManager<MonoMgr>
+public class MonoMgr : SingletonAutoMono<MonoMgr>
 {
-    private MonoController controller;
+    private event UnityAction updateEvent;
+    private event UnityAction fixedUpdateEvent;
+    private event UnityAction lateUpdateEvent;
 
-    public MonoMgr()
+    /// <summary>
+    /// Ìí¼ÓUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
+    /// </summary>
+    /// <param name="updateFun"></param>
+    public void AddUpdateListener(UnityAction updateFun)
     {
-        //ä¿è¯äº†MonoControllerå¯¹è±¡çš„å”¯ä¸€æ€§
-        GameObject obj = new GameObject("MonoController");
-        controller = obj.AddComponent<MonoController>();
+        updateEvent += updateFun;
     }
 
     /// <summary>
-    /// ç»™å¤–éƒ¨æä¾›çš„ æ·»åŠ å¸§æ›´æ–°äº‹ä»¶çš„å‡½æ•°
+    /// ÒÆ³ıUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
     /// </summary>
-    /// <param name="fun"></param>
-    public void AddUpdateListener(UnityAction fun)
+    /// <param name="updateFun"></param>
+    public void RemoveUpdateListener(UnityAction updateFun)
     {
-        controller.AddUpdateListener(fun);
+        updateEvent -= updateFun;
     }
 
     /// <summary>
-    /// æä¾›ç»™å¤–éƒ¨ ç”¨äºç§»é™¤å¸§æ›´æ–°äº‹ä»¶å‡½æ•°
+    /// Ìí¼ÓFixedUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
     /// </summary>
-    /// <param name="fun"></param>
-    public void RemoveUpdateListener(UnityAction fun)
+    /// <param name="updateFun"></param>
+    public void AddFixedUpdateListener(UnityAction updateFun)
     {
-        controller.RemoveUpdateListener(fun);
+        fixedUpdateEvent += updateFun;
+    }
+    /// <summary>
+    /// ÒÆ³ıFixedUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
+    /// </summary>
+    /// <param name="updateFun"></param>
+    public void RemoveFixedUpdateListener(UnityAction updateFun)
+    {
+        fixedUpdateEvent -= updateFun;
     }
 
-    public Coroutine StartCoroutine(IEnumerator routine)
+    /// <summary>
+    /// Ìí¼ÓLateUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
+    /// </summary>
+    /// <param name="updateFun"></param>
+    public void AddLateUpdateListener(UnityAction updateFun)
     {
-        return controller.StartCoroutine(routine);
+        lateUpdateEvent += updateFun;
     }
 
-    public Coroutine StartCoroutine(string methodName, [DefaultValue("null")] object value)
+    /// <summary>
+    /// ÒÆ³ıLateUpdateÖ¡¸üĞÂ¼àÌıº¯Êı
+    /// </summary>
+    /// <param name="updateFun"></param>
+    public void RemoveLateUpdateListener(UnityAction updateFun)
     {
-        return controller.StartCoroutine(methodName, value);
+        lateUpdateEvent -= updateFun;
     }
 
-    public Coroutine StartCoroutine(string methodName)
+
+    private void Update()
     {
-        return controller.StartCoroutine(methodName);
+        updateEvent?.Invoke();
+    }
+
+    private void FixedUpdate()
+    {
+        fixedUpdateEvent?.Invoke();
+    }
+
+    private void LateUpdate()
+    {
+        lateUpdateEvent?.Invoke();
     }
 }

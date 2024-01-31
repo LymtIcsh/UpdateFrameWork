@@ -31,18 +31,17 @@ public class ScenesMgr : BaseManager<ScenesMgr>, IProgress<float>
     /// 提供给外部的 异步加载的接口方法
     /// </summary>
     /// <param name="name"></param>
-    /// <param name="fun"></param>
-    public void LoadSceneAsyn(string name, UnityAction fun)
+    public void LoadSceneAsyn(string name)
     {
         //MonoMgr.GetInstance().StartCoroutine(ReallyLoadSceneAsyn(name, fun));
-        ReallyLoadSceneAsync(name, fun).Forget();
+        ReallyLoadSceneAsync(name).Forget();
     }
 
     /// <summary>
     /// 为调用者实现 IProgress 接口，因为这样可以没有 lambda 分配。
     /// </summary>
     /// <param name="value"></param>
-    public void Report(float value) => EventCenter.GetInstance().EventTrigger("进度条更新", value);
+    public void Report(float value) => EventCenter.GetInstance().EventTrigger(MySceneEnum.Progress, value);
 
 
     /// <summary>
@@ -58,7 +57,7 @@ public class ScenesMgr : BaseManager<ScenesMgr>, IProgress<float>
         while (!ao.isDone)
         {
             //事件中心 向外分发 进度情况  外面想用就用
-            EventCenter.GetInstance().EventTrigger("进度条更新", ao.progress);
+            EventCenter.GetInstance().EventTrigger(MySceneEnum.Progress, ao.progress);
             //这里面去更新进度条
             yield return ao.progress;
         }
@@ -70,11 +69,9 @@ public class ScenesMgr : BaseManager<ScenesMgr>, IProgress<float>
     /// UniTak 异步加载场景
     /// </summary>
     /// <param name="name"></param>
-    /// <param name="fun"></param>
     /// <returns></returns>
-    private async UniTaskVoid ReallyLoadSceneAsync(string name, UnityAction fun)
+    private async UniTaskVoid ReallyLoadSceneAsync(string name)
     {
         await SceneManager.LoadSceneAsync(name).ToUniTask(progress: this);
-        fun();
     }
 }

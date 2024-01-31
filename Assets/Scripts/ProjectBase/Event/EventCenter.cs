@@ -1,28 +1,36 @@
-ï»¿using System.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// ÓÃÓÚ ÀïÊ½Ìæ»»Ô­Ôò ×°ÔØ ×ÓÀàµÄ¸¸Àà
+/// </summary>
+public abstract class EventInfoBase{ }
 
-public interface IEventInfo
+/// <summary>
+/// ÓÃÀ´°ü¹ü ¶ÔÓ¦¹Û²ìÕß º¯ÊıÎ¯ÍĞµÄ Àà
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class EventInfo<T>:EventInfoBase
 {
-
-}
-
-public class EventInfo<T> : IEventInfo
-{
+    //ÕæÕı¹Û²ìÕß ¶ÔÓ¦µÄ º¯ÊıĞÅÏ¢ ¼ÇÂ¼ÔÚÆäÖĞ
     public UnityAction<T> actions;
 
-    public EventInfo( UnityAction<T> action)
+    public EventInfo(UnityAction<T> action)
     {
         actions += action;
     }
 }
 
-public class EventInfo : IEventInfo
+/// <summary>
+/// Ö÷ÒªÓÃÀ´¼ÇÂ¼ÎŞ²ÎÎŞ·µ»ØÖµÎ¯ÍĞ
+/// </summary>
+public class EventInfo: EventInfoBase
 {
     public UnityAction actions;
-
+     
     public EventInfo(UnityAction action)
     {
         actions += action;
@@ -31,121 +39,106 @@ public class EventInfo : IEventInfo
 
 
 /// <summary>
-/// äº‹ä»¶ä¸­å¿ƒ å•ä¾‹æ¨¡å¼å¯¹è±¡
-/// 1.Dictionary
-/// 2.å§”æ‰˜
-/// 3.è§‚å¯Ÿè€…è®¾è®¡æ¨¡å¼
-/// 4.æ³›å‹
+/// ÊÂ¼şÖĞĞÄÄ£¿é 
 /// </summary>
-public class EventCenter : BaseManager<EventCenter>
+public class EventCenter: BaseManager<EventCenter>
 {
-    //key â€”â€” äº‹ä»¶çš„åå­—ï¼ˆæ¯”å¦‚ï¼šæ€ªç‰©æ­»äº¡ï¼Œç©å®¶æ­»äº¡ï¼Œé€šå…³ ç­‰ç­‰ï¼‰
-    //value â€”â€” å¯¹åº”çš„æ˜¯ ç›‘å¬è¿™ä¸ªäº‹ä»¶ å¯¹åº”çš„å§”æ‰˜å‡½æ•°ä»¬
-    private Dictionary<string, IEventInfo> eventDic = new Dictionary<string, IEventInfo>();
+    //ÓÃÓÚ¼ÇÂ¼¶ÔÓ¦ÊÂ¼ş ¹ØÁªµÄ ¶ÔÓ¦µÄÂß¼­
+    private Dictionary<Enum, EventInfoBase> eventDic = new Dictionary<Enum, EventInfoBase>();
+    
 
     /// <summary>
-    /// æ·»åŠ äº‹ä»¶ç›‘å¬
+    /// ´¥·¢ÊÂ¼ş 
     /// </summary>
-    /// <param name="name">äº‹ä»¶çš„åå­—</param>
-    /// <param name="action">å‡†å¤‡ç”¨æ¥å¤„ç†äº‹ä»¶ çš„å§”æ‰˜å‡½æ•°</param>
-    public void AddEventListener<T>(string name, UnityAction<T> action)
+    /// <param name="eventName">ÊÂ¼şÃû×Ö</param>
+    public void EventTrigger<T>(Enum eventName, T info)
     {
-        //æœ‰æ²¡æœ‰å¯¹åº”çš„äº‹ä»¶ç›‘å¬
-        //æœ‰çš„æƒ…å†µ
-        if( eventDic.ContainsKey(name) )
+        //´æÔÚ¹ØĞÄÎÒµÄÈË ²ÅÍ¨Öª±ğÈËÈ¥´¦ÀíÂß¼­
+        if(eventDic.ContainsKey(eventName))
         {
-            (eventDic[name] as EventInfo<T>).actions += action;
+            //È¥Ö´ĞĞ¶ÔÓ¦µÄÂß¼­
+            (eventDic[eventName] as EventInfo<T>).actions?.Invoke(info);
         }
-        //æ²¡æœ‰çš„æƒ…å†µ
+    }
+
+    /// <summary>
+    /// ´¥·¢ÊÂ¼ş ÎŞ²ÎÊı
+    /// </summary>
+    /// <param name="eventName"></param>
+    public void EventTrigger(Enum eventName)
+    {
+        //´æÔÚ¹ØĞÄÎÒµÄÈË ²ÅÍ¨Öª±ğÈËÈ¥´¦ÀíÂß¼­
+        if (eventDic.ContainsKey(eventName))
+        {
+            //È¥Ö´ĞĞ¶ÔÓ¦µÄÂß¼­
+            (eventDic[eventName] as EventInfo).actions?.Invoke();
+        }
+    }
+
+
+    /// <summary>
+    /// Ìí¼ÓÊÂ¼ş¼àÌıÕß
+    /// </summary>
+    /// <param name="eventName"></param>
+    /// <param name="func"></param>
+    public void AddEventListener<T>(Enum eventName, UnityAction<T> func)
+    {
+        //Èç¹ûÒÑ¾­´æÔÚ¹ØĞÄÊÂ¼şµÄÎ¯ÍĞ¼ÇÂ¼ Ö±½ÓÌí¼Ó¼´¿É
+        if (eventDic.ContainsKey(eventName))
+        {
+            (eventDic[eventName] as EventInfo<T>).actions += func;
+        }
         else
         {
-            eventDic.Add(name, new EventInfo<T>( action ));
+            eventDic.Add(eventName, new EventInfo<T>(func));
         }
     }
 
-    /// <summary>
-    /// ç›‘å¬ä¸éœ€è¦å‚æ•°ä¼ é€’çš„äº‹ä»¶
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="action"></param>
-    public void AddEventListener(string name, UnityAction action)
+    public void AddEventListener(Enum eventName, UnityAction func)
     {
-        //æœ‰æ²¡æœ‰å¯¹åº”çš„äº‹ä»¶ç›‘å¬
-        //æœ‰çš„æƒ…å†µ
-        if (eventDic.ContainsKey(name))
+        //Èç¹ûÒÑ¾­´æÔÚ¹ØĞÄÊÂ¼şµÄÎ¯ÍĞ¼ÇÂ¼ Ö±½ÓÌí¼Ó¼´¿É
+        if (eventDic.ContainsKey(eventName))
         {
-            (eventDic[name] as EventInfo).actions += action;
+            (eventDic[eventName] as EventInfo).actions += func;
         }
-        //æ²¡æœ‰çš„æƒ…å†µ
         else
         {
-            eventDic.Add(name, new EventInfo(action));
-        }
-    }
-
-
-    /// <summary>
-    /// ç§»é™¤å¯¹åº”çš„äº‹ä»¶ç›‘å¬
-    /// </summary>
-    /// <param name="name">äº‹ä»¶çš„åå­—</param>
-    /// <param name="action">å¯¹åº”ä¹‹å‰æ·»åŠ çš„å§”æ‰˜å‡½æ•°</param>
-    public void RemoveEventListener<T>(string name, UnityAction<T> action)
-    {
-        if (eventDic.ContainsKey(name))
-            (eventDic[name] as EventInfo<T>).actions -= action;
-    }
-
-    /// <summary>
-    /// ç§»é™¤ä¸éœ€è¦å‚æ•°çš„äº‹ä»¶
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="action"></param>
-    public void RemoveEventListener(string name, UnityAction action)
-    {
-        if (eventDic.ContainsKey(name))
-            (eventDic[name] as EventInfo).actions -= action;
-    }
-
-    /// <summary>
-    /// äº‹ä»¶è§¦å‘
-    /// </summary>
-    /// <param name="name">å“ªä¸€ä¸ªåå­—çš„äº‹ä»¶è§¦å‘äº†</param>
-    public void EventTrigger<T>(string name, T info)
-    {
-        //æœ‰æ²¡æœ‰å¯¹åº”çš„äº‹ä»¶ç›‘å¬
-        //æœ‰çš„æƒ…å†µ
-        if (eventDic.ContainsKey(name))
-        {
-            //eventDic[name]();
-            if((eventDic[name] as EventInfo<T>).actions != null)
-                (eventDic[name] as EventInfo<T>).actions.Invoke(info);
-            //eventDic[name].Invoke(info);
+            eventDic.Add(eventName, new EventInfo(func));
         }
     }
 
     /// <summary>
-    /// äº‹ä»¶è§¦å‘ï¼ˆä¸éœ€è¦å‚æ•°çš„ï¼‰
+    /// ÒÆ³ıÊÂ¼ş¼àÌıÕß
     /// </summary>
-    /// <param name="name"></param>
-    public void EventTrigger(string name)
+    /// <param name="eventName"></param>
+    /// <param name="func"></param>
+    public void RemoveEventListener<T>(Enum eventName, UnityAction<T> func)
     {
-        //æœ‰æ²¡æœ‰å¯¹åº”çš„äº‹ä»¶ç›‘å¬
-        //æœ‰çš„æƒ…å†µ
-        if (eventDic.ContainsKey(name))
-        {
-            //eventDic[name]();
-            if ((eventDic[name] as EventInfo).actions != null)
-                (eventDic[name] as EventInfo).actions.Invoke();
-            //eventDic[name].Invoke(info);
-        }
+        if (eventDic.ContainsKey(eventName))
+            (eventDic[eventName] as EventInfo<T>).actions -= func;
+    }
+
+    public void RemoveEventListener(Enum eventName, UnityAction func)
+    {
+        if (eventDic.ContainsKey(eventName))
+            (eventDic[eventName] as EventInfo).actions -= func;
     }
 
     /// <summary>
-    /// æ¸…ç©ºäº‹ä»¶ä¸­å¿ƒ
-    /// ä¸»è¦ç”¨åœ¨ åœºæ™¯åˆ‡æ¢æ—¶
+    /// Çå¿ÕËùÓĞÊÂ¼şµÄ¼àÌı
     /// </summary>
     public void Clear()
     {
         eventDic.Clear();
+    }
+
+    /// <summary>
+    /// Çå³ıÖ¸¶¨Ä³Ò»¸öÊÂ¼şµÄËùÓĞ¼àÌı
+    /// </summary>
+    /// <param name="eventName"></param>
+    public void Claer(Enum eventName)
+    {
+        if (eventDic.ContainsKey(eventName))
+            eventDic.Remove(eventName);
     }
 }
